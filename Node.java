@@ -1,3 +1,5 @@
+package CS4320_HW1;
+
 import java.util.ArrayList;
 
 public class Node {

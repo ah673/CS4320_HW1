@@ -1,3 +1,4 @@
+package CS4320_HW1;
 import java.util.AbstractMap;
 import java.util.Map.Entry;
 
@@ -27,6 +28,8 @@ public class BPlusTree {
 	 * @param value
 	 */
 	public void insert(int key, String value) {
+	public void insert(int key, String value) {		
+		// initial insert to tree
 		if (root == null){
 			System.out.println("root is null");
 			LeafNode myleaf = new LeafNode(key, value);
@@ -34,6 +37,8 @@ public class BPlusTree {
 			IndexNode myindex = new IndexNode(1, myleaf, myleaf2);
 			root = myindex;
 			return; 
+			root = new LeafNode(key, value);
+			return;
 		}
 
 		
