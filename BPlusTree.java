@@ -44,7 +44,18 @@ public class BPlusTree {
 		
 		System.out.println(root.isOverflowed());
 		
+		LeafNode leafNode = findLeafNodeForInsert(root, key);
+		insertIntoNode(leafNode, key, value);
 
+	}
+
+	private void insertIntoNode(LeafNode leafNode, int key, String value) {
+		if (!leafNode.isOverflowed()){
+			// LeafNode has enough space
+			leafNode.insertSorted(key, value);
+		} else {
+			Entry<Integer,Node> rightLeaf = splitLeafNode(leafNode);
+		}
 	}
 
 	/**
@@ -113,6 +124,30 @@ public class BPlusTree {
 	public int handleIndexNodeUnderflow(IndexNode leftIndex,
 			IndexNode rightIndex, IndexNode parent) {
 		return -1;
+	}
+	
+	/**
+	 * Finds the LeafNode the key is to be inserted to
+	 * @param key
+	 * 			: the key used to find the LeafNode it is to be inserted
+	 * @return the LeafNode the key is to be inserted to
+	 */
+	private LeafNode findLeafNodeForInsert(Node theNode, int key){
+		if (theNode == null)
+			return null; 
+		
+		if (theNode.isLeafNode)
+			// Found the LeafNode
+			return (LeafNode) theNode;
+		else {
+			// The node is an index node
+			IndexNode indexNode = (IndexNode) theNode;
+			
+			if (key < theNode.keys.get(0)){
+				return findLeafNodeForInsert(indexNode.children.get(0), key); 
+			}
+		}
+		return null;
 	}
 
 }
