@@ -1,6 +1,8 @@
 package CS4320_HW1;
 
 import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map.Entry;
 
 /**
@@ -36,15 +38,16 @@ public class BPlusTree {
 		}
 		
 		LeafNode leafNode = findLeafNodeForInsert(root, key);
-		insertIntoNode(leafNode, key, value);
+		insertIntoLeafNode(leafNode, key, value);
 
 	}
 
-	private void insertIntoNode(LeafNode leafNode, int key, String value) {
-		if (!leafNode.isOverflowed()){
-			// LeafNode has enough space
-			leafNode.insertSorted(key, value);
-		} else {
+	private void insertIntoLeafNode(LeafNode leafNode, int key, String value) {
+		// insert into Leaf
+		leafNode.insertSorted(key, value);
+		
+		if (leafNode.isOverflowed()){
+			// insert caused node to overflow - split
 			Entry<Integer,Node> rightLeaf = splitLeafNode(leafNode);
 		}
 	}
@@ -57,8 +60,21 @@ public class BPlusTree {
 	 * @return the key/node pair as an Entry
 	 */
 	public Entry<Integer, Node> splitLeafNode(LeafNode leaf) {
+		int RIGHT_BUCKET_SIZE = D+1;
+		 
+		ArrayList<Integer> rightKeys = new ArrayList<Integer>(RIGHT_BUCKET_SIZE); 
+		ArrayList<String> rightValues = new ArrayList<String>(RIGHT_BUCKET_SIZE);
+		
+		rightKeys.addAll(leaf.keys.subList(D, leaf.keys.size()));
+		rightValues.addAll(leaf.values.subList(D, leaf.values.size())); 
+	
+		// delete the right side from the left
+		leaf.keys.subList(D, leaf.keys.size()).clear();
+		leaf.values.subList(D, leaf.values.size()).clear();
+		
+		LeafNode rightNode = new LeafNode(rightKeys, rightValues);
+		return new AbstractMap.SimpleEntry<Integer, Node>(rightNode.keys.get(0), rightNode);
 
-		return null;
 	}
 
 	/**
