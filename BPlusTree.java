@@ -229,6 +229,7 @@ public class BPlusTree {
 			if (key < theNode.keys.get(0)){
 				return findLeafNodeWithKey(indexNode.children.get(0), key);
 			}
+			else if (key >= theNode.keys.get(theNode.keys.size() - 1)) {
 				return findLeafNodeWithKey(indexNode.children.get(indexNode.children.size() - 1), key);
 			}
 			else {
@@ -243,8 +244,5 @@ public class BPlusTree {
 		}
 		return null;
 	}
-				else if (key >= idxNode.keys.get(node.keys.size() - 1))
-				else {
-					 while (iterator.hasNext()){
 
 }
