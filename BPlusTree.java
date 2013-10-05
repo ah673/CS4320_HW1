@@ -214,7 +214,7 @@ public class BPlusTree {
 	 * 			: the key used to find the LeafNode it is to be inserted
 	 * @return the LeafNode the key is to be inserted to
 	 */
-	private LeafNode findLeafNodeForInsert(Node theNode, int key){
+	private LeafNode findLeafNodeWithKey(Node theNode, int key){
 		if (theNode == null)
 			return null; 
 		
@@ -227,10 +227,9 @@ public class BPlusTree {
 			IndexNode indexNode = (IndexNode) theNode;
 			
 			if (key < theNode.keys.get(0)){
-				return findLeafNodeForInsert(indexNode.children.get(0), key); 
+				return findLeafNodeWithKey(indexNode.children.get(0), key);
 			}
-			else if (key > theNode.keys.get(theNode.keys.size() - 1)) {
-				return findLeafNodeForInsert(indexNode.children.get(indexNode.children.size() - 1), key);
+				return findLeafNodeWithKey(indexNode.children.get(indexNode.children.size() - 1), key);
 			}
 			else {
 				System.out.println("in last else");
@@ -244,14 +243,8 @@ public class BPlusTree {
 		}
 		return null;
 	}
-			if (idxNode.children.get(0) instanceof LeafNode)
-			else {
-				if (key < idxNode.keys.get(0))
-					return findIndexNode(idxNode.children.get(0), key);
 				else if (key >= idxNode.keys.get(node.keys.size() - 1))
-					return findIndexNode(idxNode.children.get(idxNode.children.size() - 1 ), key);
 				else {
 					 while (iterator.hasNext()){
-							 return (IndexNode)iterator.previous();
 
 }
