@@ -22,7 +22,16 @@ public class BPlusTree {
 	 * @return value
 	 */
 	public String search(int key) {
-		return null;
+		// look for leaf node that should contain key
+		LeafNode leaf = findLeafNodeWithKey(root, key);
+
+		// look for value within leaf
+		for (int i = 0; i < leaf.keys.size(); i++){
+			if (leaf.keys.get(i) == key){
+				return leaf.values.get(i); 
+			}
+		}
+		return null; 
 	}
 
 	/**
