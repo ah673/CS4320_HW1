@@ -244,29 +244,14 @@ public class BPlusTree {
 		}
 		return null;
 	}
-	
-	private IndexNode findIndexNode(Node node, int key){ 
-		if (!node.isLeafNode){
-			IndexNode idxNode = (IndexNode)node;
 			if (idxNode.children.get(0) instanceof LeafNode)
-				return idxNode;
 			else {
 				if (key < idxNode.keys.get(0))
 					return findIndexNode(idxNode.children.get(0), key);
 				else if (key >= idxNode.keys.get(node.keys.size() - 1))
 					return findIndexNode(idxNode.children.get(idxNode.children.size() - 1 ), key);
 				else {
-					 ListIterator<Node> iterator = idxNode.children.listIterator(); 
 					 while (iterator.hasNext()){
-						 if (iterator.next().keys.get(0) > key){
-							 System.out.println("key is " + key);
 							 return (IndexNode)iterator.previous();
-						 }
-					 }
-				}
-			}
-		}
-		return null;
-	}
 
 }
