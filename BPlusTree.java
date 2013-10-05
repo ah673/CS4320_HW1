@@ -187,6 +187,22 @@ public class BPlusTree {
 	 */
 	public int handleLeafNodeUnderflow(LeafNode left, LeafNode right,
 			IndexNode parent) {
+		// merge
+		if (left.keys.size() + right.keys.size() < 2*D){
+			left.keys.addAll(right.keys); 
+			left.values.addAll(right.values);
+			int oldSplitKey = right.keys.get(0); 
+			parent.children.remove(parent.keys.indexOf(oldSplitKey) + 1); 
+			return oldSplitKey; 
+		
+		if (left.isUnderflowed()){
+			right.keys.remove(0);
+			// get maximum key value of left
+			right.insertSorted(left.keys.get(right.keys.size() - 1), right.values.get(right.values.size() - 1));
+			left.keys.remove(left.keys.size()-1);
+			left.values.remove(left.keys.size()-1); 
+		}
+		
 		return -1;
 
 	}
