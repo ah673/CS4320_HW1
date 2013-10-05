@@ -28,6 +28,19 @@ public class Tests {
 	    assertEquals(test, correct);
 		
 	}
+	@Test
+	public void testDeleteLeafNodeMerge() {
+		int testNumbers[] = new int[] { 2, 4, 7, 8, 5, 6};
+		BPlusTree tree=new BPlusTree();
+		Utils.bulkInsert(tree, testNumbers);
+		
+		tree.delete(6);
+		tree.delete(4);
+		String test=outputTree(tree);
+		
+		String result="[(2,2);(5,5);(7,7);(8,8);]$%%";
+		assertEquals(result, test);
+	}
 	
 	/**
 	 * return the current tree to console in comparable format
@@ -56,12 +69,17 @@ public class Tests {
 					result += "(" + leaf.keys.get(i) + ","
 							+ leaf.values.get(i) + ");";
 				}
-				childrenPerIndex.set(0, childrenPerIndex.get(0) - 1);
-				if (childrenPerIndex.get(0) == 0) {
-					result += "]$";
-					childrenPerIndex.remove(0);
-				} else {
-					result += "]#";
+				if(childrenPerIndex.isEmpty()){
+					result += "]$";	
+				}else{
+					childrenPerIndex.set(0, childrenPerIndex.get(0) - 1);
+					if (childrenPerIndex.get(0) == 0) {
+						result += "]$";
+						childrenPerIndex.remove(0);
+					} else {
+						result += "]#";
+					}
+					
 				}
 			} else {
 				IndexNode index = ((IndexNode) target);
@@ -84,7 +102,7 @@ public class Tests {
 			}
 
 		}
-		System.out.println(result);
+		
 		return result;
 
 	}
