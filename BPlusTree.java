@@ -44,59 +44,64 @@ public class BPlusTree {
 		// initial insert to tree
 		if (root == null){
 			root = new LeafNode(key, value);
-			return;
 		}
 		
-		// find appropriate parent index node and leaf node for key
-		IndexNode idxNode = findIndexNode(root, key); 
-		if (idxNode == null) {
-			System.out.println("idx node is null");
+		Entry<Integer, Node> overflowed = insertHelper(root, key, value);
+		if (overflowed != null){
+			// overflow emerged to root level
+			root = new IndexNode(overflowed.getKey(), root, overflowed.getValue());
 		}
-		LeafNode leafNode; 
-		if (idxNode == null) 
-			leafNode = findLeafNodeForInsert(root, key);
-		else 
-			leafNode = findLeafNodeForInsert(idxNode, key); 
-
-		insertIntoTree(idxNode, leafNode, key, value);
 
 	}
-
-	/**
-	 * Helper method to insert() to account for cases of overflow
-	 * @param idxNode
-	 * @param leafNode
-	 * @param key
-	 */
-	private void insertIntoTree(IndexNode idxNode, LeafNode leafNode, int key, String value) {
-		// insert into Leaf
-		leafNode.insertSorted(key, value);
-		
-		// Case: inserting into leaf overflows leaf
-		if (leafNode.isOverflowed()){
-			System.out.println("you've overflowed me!");
-			Entry<Integer,Node> rightSplit = splitLeafNode(leafNode);
-			int splittingKey = rightSplit.getKey(); 
-			System.out.println("splitting key " + splittingKey);
-			LeafNode rightLeafNode = (LeafNode) rightSplit.getValue(); 
-			manageLeafNodePointers(leafNode, rightLeafNode);
-			// copy up splitting key
-			if (idxNode == null){
-				System.out.println("but idxnode is null");
-				root = new IndexNode(splittingKey, leafNode, rightLeafNode);
+	private Entry<Integer, Node> insertHelper(Node node, int key, String value){
+		Entry<Integer,Node> overflow = null; 
+		if (node.isLeafNode){
+			LeafNode leaf = (LeafNode) node; 
+			leaf.insertSorted(key, value);
+			if (leaf.isOverflowed()){
+				Entry<Integer, Node> rightSplit = splitLeafNode(leaf);
+				LeafNode rightLeaf = (LeafNode) rightSplit.getValue();
+				manageSiblingPtrs(leaf, rightLeaf);
+				return rightSplit;
 			}
+			return null; 
+		}
+		else {
+			IndexNode idxNode = (IndexNode) node; 
+			if (key < node.keys.get(0)) 
+				overflow = insertHelper(idxNode.children.get(0), key, value);
+			else if (key >= node.keys.get(idxNode.keys.size() - 1))
+				overflow = insertHelper(idxNode.children.get(idxNode.children.size() - 1), key, value); 
 			else {
-				idxNode.insertSorted(rightSplit, splittingKey); 
+				ListIterator<Node> iterator = idxNode.children.listIterator(); 
+				 if (iterator.next().keys.get(0) > key){
+					 System.out.println("key is " + key);
+					 overflow = insertHelper((IndexNode)iterator.previous(), key, value);
+				 }
 			}
 		}
+		if (overflow != null){
+			IndexNode idxNode = (IndexNode)node;
+			
+			//figure out where to put overflowed node
+			idxNode.insertSorted(overflow, overflow.getKey());
+			if (idxNode.isOverflowed()){
+				Entry<Integer, Node> rightSplit = splitIndexNode(idxNode);
+				return rightSplit;
+			}
+			return null;
+		}
+		return overflow;
+		
 	}
+
 
 	/**
 	 * Rearranges pointers for the leftLeaf's nextLeaf pointer. 
 	 * @param leftLeaf 
 	 * @param rightLeaf
 	 */
-	private void manageLeafNodePointers(LeafNode leftLeaf, LeafNode rightLeaf) {
+	private void manageSiblingPtrs(LeafNode leftLeaf, LeafNode rightLeaf) {
 		if (leftLeaf.nextLeaf == null )
 			leftLeaf.nextLeaf = rightLeaf;
 		else {
@@ -140,8 +145,23 @@ public class BPlusTree {
 	 * @return new key/node pair as an Entry
 	 */
 	public Entry<Integer, Node> splitIndexNode(IndexNode index) {
+		int BUCKET_SIZE = D; 
+		ArrayList<Integer> rightKeys = new ArrayList<Integer>(BUCKET_SIZE); 
+		ArrayList<Node> rightChildren = new ArrayList<Node>(BUCKET_SIZE + 1);
+		
+		rightKeys.addAll(index.keys.subList(D+1, index.keys.size()));
+		rightChildren.addAll(index.children.subList(D+1, index.children.size())); 
+		
+		// push up the new index
+		IndexNode rightNode = new IndexNode(rightKeys, rightChildren);
+		AbstractMap.SimpleEntry<Integer, Node> splitted = new AbstractMap.SimpleEntry<Integer, Node>(index.keys.get(D), rightNode);
+				
 
-		return null;
+		// delete the right side from the left
+		index.keys.subList(D, index.keys.size()).clear();
+		index.children.subList(D+1, index.children.size()).clear();
+		
+		return splitted;
 	}
 
 	/**
