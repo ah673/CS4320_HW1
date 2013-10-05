@@ -170,7 +170,99 @@ public class BPlusTree {
 	 * @param key
 	 */
 	public void delete(int key) {
+		
+		int index = deleteHelper(null, root, key);
+		if (index != -1){
+			root.keys.remove(index);
+			if (root.keys.size() == 0){
+				root = ((IndexNode) root).children.get(0);
+			}
+		}
+	}
 
+	private int deleteHelper(IndexNode parent, Node node, int key) {
+		int indexToDelete = -1; 
+		
+		// find index of node in parent
+		int indexInParent = -1; 
+		if (parent != null){
+			for (indexInParent = 0; indexInParent < parent.children.size(); indexInParent++){
+				if (parent.children.get(indexInParent) == node){
+					break; 
+				}
+			}
+		}
+		
+		
+		if (node.isLeafNode){
+			LeafNode leafNode = (LeafNode) node; 
+
+			for (int i = 0; i < leafNode.keys.size(); i++){
+				if (leafNode.keys.get(i) == key){
+					// delete key from leafNode's keys
+					leafNode.keys.remove(i); 
+					// delete the associated value
+					leafNode.values.remove(i); 
+					break;
+				}
+			}
+			
+			// check for underflow
+			if (leafNode.isUnderflowed()){
+				// find index leafnode resides in parent
+				if (indexInParent - 1 >= 0){
+					// node has left child
+					LeafNode left = (LeafNode) parent.children.get(indexInParent -1);
+					return handleLeafNodeUnderflow(left, leafNode, parent);
+				} else {
+					// node does not have left child
+					LeafNode right = (LeafNode) parent.children.get(indexInParent + 1); 
+					return handleLeafNodeUnderflow(leafNode, right, parent);
+				}
+				
+			}
+			return -1; // delete did not cause underflow
+			
+		} 
+		
+		else {
+			// Node is an IndexNode 
+			IndexNode idxNode = (IndexNode) node; 
+			if (key < idxNode.keys.get(0))
+				indexToDelete = deleteHelper(idxNode, idxNode.children.get(0), key);
+			else if (key >= idxNode.keys.get(idxNode.keys.size() - 1))
+				indexToDelete = deleteHelper(idxNode, idxNode.children.get(idxNode.children.size() - 1), key);
+			else {
+				ListIterator<Node> iterator = idxNode.children.listIterator(); 
+				if (iterator.next().keys.get(0) > key){
+					indexToDelete = deleteHelper(idxNode, iterator.previous(), key); 
+				}
+			}
+		}
+		
+		// see if there is an index to delete remaining
+		if (indexToDelete != -1){
+			if (node == root ){
+				return indexToDelete; 
+			}
+			node.keys.remove(indexToDelete); 
+		}
+		
+		
+		// if removal caused underflow 
+		if (node.isUnderflowed()){
+			// determine if node has left sibling
+			IndexNode left = (IndexNode)node; 
+			IndexNode right = (IndexNode)node; 
+			if (indexInParent - 1 >= 0){
+				left = (IndexNode) parent.children.get(indexInParent - 1);  
+			} else {
+				right = (IndexNode) parent.children.get(indexInParent + 1);  
+			}
+			return handleIndexNodeUnderflow(left, right, parent);  
+		}
+			
+		return -1; 
 	}
 
 	/**
@@ -191,12 +283,20 @@ public class BPlusTree {
 		if (left.keys.size() + right.keys.size() < 2*D){
 			left.keys.addAll(right.keys); 
 			left.values.addAll(right.values);
+			
 			int oldSplitKey = right.keys.get(0); 
+			// delete the other node
 			parent.children.remove(parent.keys.indexOf(oldSplitKey) + 1); 
-			return oldSplitKey; 
+			return parent.keys.indexOf(oldSplitKey); 
+		}
 		
+		// distribute
 		if (left.isUnderflowed()){
+			// get the minimum key value of right
+			left.insertSorted(right.keys.get(0), right.values.get(0));
 			right.keys.remove(0);
+			right.values.remove(0); 
+		} else {
 			// get maximum key value of left
 			right.insertSorted(left.keys.get(right.keys.size() - 1), right.values.get(right.values.size() - 1));
 			left.keys.remove(left.keys.size()-1);
@@ -221,6 +321,63 @@ public class BPlusTree {
 	 */
 	public int handleIndexNodeUnderflow(IndexNode leftIndex,
 			IndexNode rightIndex, IndexNode parent) {
+		
+		System.out.println("left Node keys");
+		for (int key : leftIndex.keys){
+			System.out.println( key );
+		}
+		
+		System.out.println("right Node keys");
+		for (int key : rightIndex.keys){
+			System.out.println( key );
+		}
+		
+		System.out.println("parent Node keys");
+		for (int key : parent.keys){
+			System.out.println( key );
+		}
+		
+		int separatingKey;
+		int index; 
+		
+		// find separating key value from parent  
+		for (index = 0; index < parent.keys.size(); index++){
+			if (parent.children.get(index) == leftIndex && parent.children.get(index+1) == rightIndex){
+				break; 
+			}
+		}
+		
+		System.out.println("index is " + index );
+		separatingKey = parent.keys.get(index);  
+		
+		// Action : merge
+		if (leftIndex.keys.size() + rightIndex.keys.size() < 2*D){
+			// move separating key down 
+			leftIndex.keys.add(separatingKey); 
+			leftIndex.keys.addAll(rightIndex.keys);
+			
+			leftIndex.children.addAll(rightIndex.children);
+			
+			// delete the right side
+			parent.children.remove(parent.children.indexOf(rightIndex));
+			return index; 
+		
+		}
+		
+		// Distribution
+		if (leftIndex.isUnderflowed()){
+			// move separating key down to leftIndex
+			leftIndex.keys.add(separatingKey);
+			// move leftmost key from right up 
+			parent.keys.set(index, rightIndex.keys.remove(0)); 
+		}
+		else if (rightIndex.isUnderflowed()) {
+			// move separating key down to rightIndex
+			rightIndex.keys.add(0, separatingKey); 
+			// move rightmost key from leftIndex up
+			parent.keys.set(parent.keys.size()-1, leftIndex.keys.remove(leftIndex.keys.size() - 1));
+		}
+		
 		return -1;
 	}
 	
