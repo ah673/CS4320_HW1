@@ -296,13 +296,13 @@ public class BPlusTree {
 			
 		}
 		
-		// distribute
+		// re-distribute
 		if (left.isUnderflowed()){
 			// get the minimum key value of right
 			left.insertSorted(right.keys.remove(0), right.values.remove(0));
 		} else {
 			// get maximum key value of left
-			right.insertSorted(left.keys.remove(left.keys.size()-1), left.values.remove(left.keys.size()-1));
+			right.insertSorted(left.keys.remove(left.keys.size()-1), left.values.remove(left.values.size()-1));
 		}
 		
 		// update the parent's index key
