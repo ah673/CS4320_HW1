@@ -38,9 +38,23 @@ public class Tests {
 		tree.delete(7);
 		tree.delete(8);
 		String test = outputTree(tree);
+		System.out.println(test);
 
 		String result = "@4/@%%[(2,2);(3,3);]#[(4,4);(5,5);]$%%";
 		assertEquals(result, test);
+	}
+	
+	public void testIndexMerge(){
+		int primeNumbers[] = new int[] { 2, 3,4, 5,6, 7, 11, 12, 13, 14,
+		15, 16,17, 8, 9, 10 };
+		BPlusTree tree = new BPlusTree();
+		Utils.bulkInsert(tree, primeNumbers);
+		tree.delete(16);
+		tree.delete(17);
+
+		String test = outputTree(tree);
+		String correct = "@8/@%%@4/6/@@11/13/@%%[(2,2);(3,3);]#[(4,4);(5,5);]#[(6,6);(7,7);]$[(8,8);(9,9);(10,10);]#[(11,11);(12,12);]#[(13,13);(14,14);(15,15);]$%%";
+		assertEquals(correct, test);
 	}
 
 	/**
