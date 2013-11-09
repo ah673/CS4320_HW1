@@ -10,6 +10,7 @@ Assignment was to implement the following functions as well as a description of 
 Search
 -------
 Given a key, return the associated String value.
+
 This was implemented recursively to find the leaf node containing the number. 
 Then a scan through the leaf node was used to find the key. 
 A better implementation would be to use binary search, since the keys are sorted.
@@ -22,6 +23,7 @@ In insertion, there are three distinct cases to think about:
 * the target node has available space for one more key. (done)
 * the target node is full, but its parent has space for one more key. (leaf overflow)
 * the target node and its parent are both full. (leaf overflow and index node overflow)
+
 This followed a recursive insert. If an insert causes an overflow, the median key is propagated up to the parent where an insert is attempted. 
 If this causes an overflow, it will continue to propagate up. It may reach the root in which case a split of the root is necessary. 
 
